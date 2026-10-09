@@ -1,18 +1,11 @@
-
-  import asyncio
+import asyncio
 import os
-from aiohttp import web
-import google.generativeai as genai
+from aiohttp import web, ClientSession
 from aiogram import Bot, Dispatcher, types
 from aiogram.filters import CommandStart
 
 TELEGRAM_BOT_TOKEN = "8769661200:AAH4-qYLserNJIFbxCcY9NfVjlafDxei7xQ"
-# यहाँ AI Studio वाली अपनी पूरी AQ.Ab8... वाली Key पेस्ट करें
-GEMINI_API_KEY = "AQ.Ab8RN6IsBli1n9xN0wjB86rGcqNGICc..." 
-
-genai.configure(api_key=GEMINI_API_KEY)
-# मॉडल का नाम सही कर दिया गया है
-model = genai.GenerativeModel('gemini-1.5-flash')
+GEMINI_API_KEY = "AQ.Ab8RN6IZbXh0SXeszuk66KqBJ6hZj4mibHIjbu0mW38H3YgE_A"
 
 bot = Bot(token=TELEGRAM_BOT_TOKEN)
 dp = Dispatcher()
@@ -21,16 +14,37 @@ dp = Dispatcher()
 async def start_cmd(message: types.Message):
     await message.answer("नमस्ते! मैं JARVIS Bot हूँ। मुझसे कोई भी सवाल पूछिए।")
 
+async def get_gemini_response(prompt: str) -> str:
+    url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent"
+    
+    headers = {"Content-Type": "application/json"}
+    if GEMINI_API_KEY.startswith("AQ."):
+        headers["Authorization"] = f"Bearer {GEMINI_API_KEY}"
+    else:
+        headers["x-goog-api-key"] = GEMINI_API_KEY
+
+    payload = {
+        "contents": [{"parts": [{"text": prompt}]}]
+    }
+
+    async with ClientSession() as session:
+        async with session.post(url, headers=headers, json=payload) as resp:
+            data = await resp.json()
+            if resp.status == 200:
+                try:
+                    return data["candidates"][0]["content"]["parts"][0]["text"]
+                except (KeyError, IndexError):
+                    return "क्षमा करें, उत्तर प्राप्त करने में समस्या आई।"
+            else:
+                error_msg = data.get("error", {}).get("message", "Unknown error")
+                return f"त्रुटि (Error {resp.status}):\n{error_msg}"
+
 @dp.message()
 async def handle_message(message: types.Message):
-    try:
-        response = await model.generate_content_async(message.text)
-        await message.answer(response.text)
-    except Exception as e:
-        print(f"Error detail: {e}")
-        await message.answer(f"त्रुटि (Error) आई है:\n{e}")
+    response_text = await get_gemini_response(message.text)
+    await message.answer(response_text)
 
-# Render Web Service के लिए हेल्थ चेक
+# Render Web Service के लिए हेल्थ चेक सर्वर
 async def handle_health_check(request):
     return web.Response(text="JARVIS Bot is running!")
 
@@ -49,4 +63,4 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
-
+    
