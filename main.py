@@ -4,9 +4,8 @@ from aiohttp import web, ClientSession
 from aiogram import Bot, Dispatcher, types
 from aiogram.filters import CommandStart
 
-# Yeh Render ke Environment Variable se token apne aap utha lega
 TELEGRAM_BOT_TOKEN = os.environ.get("BOT_TOKEN")
-GEMINI_API_KEY = "AIzaSy..."  # Yahan apni asli Gemini API key daalein
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")  # Yeh zaroori hai!
 
 ADMIN_ID = 5572297184
 REQUIRED_CHANNEL = "@A_TOOLSx2"
