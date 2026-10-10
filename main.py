@@ -39,12 +39,13 @@ async def start_cmd(message: types.Message):
     await message.answer("नमस्ते! मैं JARVIS Bot हूँ। मुझसे कोई भी सवाल पूछिए।")
 
 async def get_gemini_response(prompt: str) -> str:
-    url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent"
+    # URL mein gemini-1.5-flash ko sahi format 'gemini-1.5-flash:generateContent' diya hai
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={GEMINI_API_KEY}"
     headers = {"Content-Type": "application/json"}
     payload = {"contents": [{"parts": [{"text": prompt}]}]}
 
     async with ClientSession() as session:
-        async with session.post(f"{url}?key={GEMINI_API_KEY}", headers=headers, json=payload) as resp:
+        async with session.post(url, headers=headers, json=payload) as resp:
             data = await resp.json()
             if resp.status == 200:
                 try:
