@@ -5,8 +5,7 @@ from aiogram import Bot, Dispatcher, types
 from aiogram.filters import CommandStart
 
 TELEGRAM_BOT_TOKEN = "8769661200:AAG3YHRMuhiZIgjSeQGFjvJHW6ktXoF72U"
-# यहाँ अपनी AI Studio से मिली असली AIzaSy... वाली Key डालें:
-GEMINI_API_KEY = "AIzaSy..." 
+GEMINI_API_KEY = "AIzaSy..."  # यहाँ अपनी असली AI Studio Key डालें
 
 ADMIN_ID = 5572297184
 REQUIRED_CHANNEL = "@A_TOOLSx2"
@@ -15,7 +14,7 @@ bot = Bot(token=TELEGRAM_BOT_TOKEN)
 dp = Dispatcher()
 
 async def is_user_subscribed(user_id: int) -> bool:
-    if user_id == ADMIN_ID:
+    if str(user_id) == str(ADMIN_ID):
         return True
     try:
         member = await bot.get_chat_member(chat_id=REQUIRED_CHANNEL, user_id=user_id)
@@ -28,23 +27,21 @@ async def is_user_subscribed(user_id: int) -> bool:
 
 @dp.message(CommandStart())
 async def start_cmd(message: types.Message):
-    if message.from_user.id != ADMIN_ID:
-        subscribed = await is_user_subscribed(message.from_user.id)
-        if not subscribed:
-            await message.answer(f"🚀 To use this bot, you must join our channel: https://t.me/A_TOOLSx2")
-            return
+    if str(message.from_user.id) == str(ADMIN_ID):
+        await message.answer("नमस्ते मालिक! JARVIS सक्रिय है।")
+        return
+
+    subscribed = await is_user_subscribed(message.from_user.id)
+    if not subscribed:
+        await message.answer(f"🚀 To use this bot, you must join our channel: https://t.me/A_TOOLSx2")
+        return
+        
     await message.answer("नमस्ते! मैं JARVIS Bot हूँ। मुझसे कोई भी सवाल पूछिए।")
 
 async def get_gemini_response(prompt: str) -> str:
     url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent"
-    
-    headers = {
-        "Content-Type": "application/json"
-    }
-
-    payload = {
-        "contents": [{"parts": [{"text": prompt}]}]
-    }
+    headers = {"Content-Type": "application/json"}
+    payload = {"contents": [{"parts": [{"text": prompt}]}]}
 
     async with ClientSession() as session:
         async with session.post(f"{url}?key={GEMINI_API_KEY}", headers=headers, json=payload) as resp:
@@ -60,12 +57,10 @@ async def get_gemini_response(prompt: str) -> str:
 
 @dp.message()
 async def handle_message(message: types.Message):
-    if message.from_user.id != ADMIN_ID:
+    if str(message.from_user.id) != str(ADMIN_ID):
         subscribed = await is_user_subscribed(message.from_user.id)
         if not subscribed:
-            await message.answer(
-                f"🚀 To use this bot, you must join our channel: https://t.me/A_TOOLSx2"
-            )
+            await message.answer(f"🚀 To use this bot, you must join our channel: https://t.me/A_TOOLSx2")
             return
 
     response_text = await get_gemini_response(message.text)
@@ -87,4 +82,3 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
-            
