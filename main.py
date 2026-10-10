@@ -5,7 +5,7 @@ from aiogram import Bot, Dispatcher, types
 from aiogram.filters import CommandStart
 
 TELEGRAM_BOT_TOKEN = os.environ.get("BOT_TOKEN")
-BOT_TOKEN = os.environ.get("BOT_TOKEN") # Yeh zaroori hai!
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY") # Yeh zaroori hai!
 
 ADMIN_ID = 5572297184
 REQUIRED_CHANNEL = "@A_TOOLSx2"
