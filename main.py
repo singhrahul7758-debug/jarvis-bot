@@ -39,8 +39,8 @@ async def start_cmd(message: types.Message):
     await message.answer("नमस्ते! मैं JARVIS Bot हूँ। मुझसे कोई भी सवाल पूछिए।")
 
 async def get_gemini_response(prompt: str) -> str:
-    # URL mein gemini-1.5-flash ko sahi format 'gemini-1.5-flash:generateContent' diya hai
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={GEMINI_API_KEY}"
+    # Yahan v1beta ki jagah 'v1' kar diya hai taaki model turant mil jaye
+    url = f"https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key={GEMINI_API_KEY}"
     headers = {"Content-Type": "application/json"}
     payload = {"contents": [{"parts": [{"text": prompt}]}]}
 
