@@ -1,4 +1,5 @@
 aiogram
-google-generativeai
 aiohttp
+google-generativeai
+
 
