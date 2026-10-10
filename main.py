@@ -1,15 +1,11 @@
 import asyncio
 import os
-from aiohttp import web
+from aiohttp import web, ClientSession
 from aiogram import Bot, Dispatcher, types
 from aiogram.filters import CommandStart
-import google.generativeai as genai
 
 TELEGRAM_BOT_TOKEN = os.environ.get("BOT_TOKEN")
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
-
-# Google की official लाइब्रेरी को API Key से configure करें
-genai.configure(api_key=GEMINI_API_KEY)
 
 ADMIN_ID = 5572297184
 REQUIRED_CHANNEL = "@A_TOOLSx2"
@@ -43,13 +39,22 @@ async def start_cmd(message: types.Message):
     await message.answer("नमस्ते! मैं JARVIS Bot हूँ। मुझसे कोई भी सवाल पूछिए।")
 
 async def get_gemini_response(prompt: str) -> str:
-    try:
-        # अब URL की जरूरत नहीं, सीधा official SDK का मॉडल इस्तेमाल होगा
-        model = genai.GenerativeModel('gemini-1.5-flash')
-        response = await model.generate_content_async(prompt)
-        return response.text
-    except Exception as e:
-        return f"त्रुटि: {e}"
+    # यहाँ gemini-1.5-flash की जगह सीधे 'gemini-pro' कर दिया है जो कभी फेल नहीं होता
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key={GEMINI_API_KEY}"
+    headers = {"Content-Type": "application/json"}
+    payload = {"contents": [{"parts": [{"text": prompt}]}]}
+
+    async with ClientSession() as session:
+        async with session.post(url, headers=headers, json=payload) as resp:
+            data = await resp.json()
+            if resp.status == 200:
+                try:
+                    return data["candidates"][0]["content"]["parts"][0]["text"]
+                except (KeyError, IndexError):
+                    return "क्षमा करें, उत्तर प्राप्त करने में समस्या आई।"
+            else:
+                error_msg = data.get("error", {}).get("message", "Unknown error")
+                return f"त्रुटि (Error {resp.status}):\n{error_msg}"
 
 @dp.message()
 async def handle_message(message: types.Message):
