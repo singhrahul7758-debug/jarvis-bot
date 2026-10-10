@@ -5,10 +5,26 @@ from aiogram import Bot, Dispatcher, types
 from aiogram.filters import CommandStart
 
 TELEGRAM_BOT_TOKEN = "8769661200:AAH4-qYLserNJIFbxCcY9NfVjlafDxei7xQ"
-GEMINI_API_KEY = "AQ.Ab8RN6IZbXh0SXeszuk66KqBJ6hZj4mibHIjbu0mW38H3YgE_A"
+# आपकी नई API Key यहाँ लगा दी गई है:
+GEMINI_API_KEY = "AQ.Ab8RN6LIi9YuMFHHNAq5DS4EZNncMlr8sSzCRLhgpssx2xdxpw"
+
+ADMIN_ID = 5572297184
+REQUIRED_CHANNEL = "@A_TOOLSx2"
 
 bot = Bot(token=TELEGRAM_BOT_TOKEN)
 dp = Dispatcher()
+
+async def is_user_subscribed(user_id: int) -> bool:
+    if user_id == ADMIN_ID:
+        return True
+    try:
+        member = await bot.get_chat_member(chat_id=REQUIRED_CHANNEL, user_id=user_id)
+        if member.status in ["creator", "administrator", "member"]:
+            return True
+    except Exception as e:
+        print(f"Error checking channel status: {e}")
+        return False
+    return False
 
 @dp.message(CommandStart())
 async def start_cmd(message: types.Message):
@@ -17,11 +33,10 @@ async def start_cmd(message: types.Message):
 async def get_gemini_response(prompt: str) -> str:
     url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent"
     
-    headers = {"Content-Type": "application/json"}
-    if GEMINI_API_KEY.startswith("AQ."):
-        headers["Authorization"] = f"Bearer {GEMINI_API_KEY}"
-    else:
-        headers["x-goog-api-key"] = GEMINI_API_KEY
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {GEMINI_API_KEY}"
+    }
 
     payload = {
         "contents": [{"parts": [{"text": prompt}]}]
@@ -41,16 +56,21 @@ async def get_gemini_response(prompt: str) -> str:
 
 @dp.message()
 async def handle_message(message: types.Message):
+    subscribed = await is_user_subscribed(message.from_user.id)
+    if not subscribed:
+        await message.answer(
+            f"🚀 To use this bot, you must join our channel: https://t.me/A_TOOLSx2"
+        )
+        return
+
     response_text = await get_gemini_response(message.text)
     await message.answer(response_text)
 
-# Render Web Service के लिए हेल्थ चेक सर्वर
 async def handle_health_check(request):
     return web.Response(text="JARVIS Bot is running!")
 
 async def main():
-    print("JARVIS Bot सक्रिय (active) हो गया है...")
-    
+    print("JARVIS Bot सक्रिय हो गया है...")
     app = web.Application()
     app.router.add_get('/', handle_health_check)
     runner = web.AppRunner(app)
@@ -58,9 +78,8 @@ async def main():
     port = int(os.environ.get("PORT", 8080))
     site = web.TCPSite(runner, "0.0.0.0", port)
     await site.start()
-    
     await dp.start_polling(bot)
 
 if __name__ == "__main__":
     asyncio.run(main())
-
+    
