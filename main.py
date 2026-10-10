@@ -4,7 +4,7 @@ from aiohttp import web, ClientSession
 from aiogram import Bot, Dispatcher, types
 from aiogram.filters import CommandStart
 
-TELEGRAM_BOT_TOKEN = "8769661200:AAH4-qYLserNJIFbxCcY9NfVjlafDxei7xQ"
+TELEGRAM_BOT_TOKEN = "8769661200:AAG3YHRMuhiZIgjSeQGFjvJHW6ktXoF72U"
 # यहाँ अपनी AI Studio से मिली असली AIzaSy... वाली Key डालें:
 GEMINI_API_KEY = "AIzaSy..." 
 
